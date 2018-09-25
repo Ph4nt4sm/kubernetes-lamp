@@ -1,0 +1,47 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: my-php7-server
+  labels:
+    app: my-php7-server
+spec:
+  template:
+    metadata:
+      labels:
+        app: my-php7-server
+    spec:
+      containers:
+      - name: my-php7-server
+        image: sisyphuss/apachephp
+        env:
+        - name: DB_HOST
+          value: 10.244.2.31  
+        - name: DB_NAME
+          value: restaurant_db 
+        - name: DB_USER
+          valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials 
+                  key: user
+        - name: DB_PWD
+          valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials 
+                  key: password 
+        ports:
+        - containerPort: 80
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-php7-server
+spec:
+  type: NodePort
+  selector:
+    app: my-php7-server
+  ports:
+    - name: php
+      protocol: TCP
+      port: 80
+      nodePort: 32222
+      targetPort: 80
